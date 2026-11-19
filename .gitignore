@@ -1,3 +1,11 @@
 venv/
 Agent_Sandbox/runs/
-Agent_Sandbox/__pycache__/
+evidence/
+__pycache__/
+.venv/
+# local working files (not part of the repo history; force-add if you want them tracked)
+kickoff-prompt.md
+proposed-step1-main.py
+
+# built artefacts (e.g. the replay kit zip for teammates)
+dist/
