@@ -1,1 +1,3 @@
 venv/
+Agent_Sandbox/runs/
+Agent_Sandbox/__pycache__/

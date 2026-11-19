@@ -4,8 +4,8 @@ Proposed by Ivan (with Claude) for the team lead's sandbox, not his code. Format
 eight changes (see the module notes below and analysis/README-run-folder.md, "Shared folder").
 
 Layout inside the one agent container:
-    /shared                 root:swarm 3770 (setgid + sticky): every agent can create files; only the owner
-                            (or root) can delete or rename a file
+    /shared                 root:swarm 2770 (setgid, no sticky): every agent can create, edit and
+                            delete files. New files get group swarm
     /shared/tasks           root:swarm 2750: agents cannot create or delete task folders
     /shared/tasks/<agent>_r<N>_<seq>/
                             <agent>:swarm 2770: one folder per simple task, writable by the whole group.
@@ -41,6 +41,7 @@ from runlog import JsonlLog, utc_now
 
 ROOT = "/shared"
 TASKS = "/shared/tasks"
+ROOT_MODE = "2770"           # setgid, group rwx, no sticky bit (sticky is 3770; Ubuntu blocks O_CREAT there)
 GROUP = "swarm"
 UMASK_FILE = "/etc/profile.d/swarm-umask.sh"
 MONITOR_CAP = 8000           # characters of an event a monitor sees (messages are capped at 2000 at send time)
@@ -236,7 +237,7 @@ class SharedFolder:
         self._root(["groupadd", "--force", GROUP])
         for user in self.users:
             self._root(["usermod", "-a", "-G", GROUP, user])
-        self._root(["install", "-d", "-o", "root", "-g", GROUP, "-m", "3770", ROOT])
+        self._root(["install", "-d", "-o", "root", "-g", GROUP, "-m", ROOT_MODE, ROOT])
         self._root(["install", "-d", "-o", "root", "-g", GROUP, "-m", "2750", TASKS])
         self.box._run(self.box.exec_argv(["tee", UMASK_FILE], user="root", stdin=True), input=b"umask 0007\n")
         self._root(["chmod", "644", UMASK_FILE])
@@ -250,7 +251,7 @@ class SharedFolder:
         """Refuse to go on unless the permissions are exactly as designed (checked as the agents' users)."""
         r = self._root(["stat", "-c", "%a %U %G", ROOT, TASKS])
         got = r.stdout.decode().split("\n")[:2]
-        if got != [f"3770 root {GROUP}", f"2750 root {GROUP}"]:
+        if got != [f"{ROOT_MODE} root {GROUP}", f"2750 root {GROUP}"]:
             raise RuntimeError(f"shared folder permissions wrong: {got}")
         users = list(self.users)
         for u in users:

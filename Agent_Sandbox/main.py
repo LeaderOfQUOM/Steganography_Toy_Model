@@ -43,7 +43,8 @@ def trajectory_text(messages):
 
 # SWARM_ISOLATION=container: the harness runs on the host; all agents share ONE container, each as its own
 # Linux user (design/isolation-1page.md). Default "none": the old setup (harness and agents in one container).
-ISOLATION = os.environ.get("SWARM_ISOLATION", "none")
+os.environ.setdefault("SWARM_RUN_DIR", os.path.expanduser("/Steganography_Toy_Model/Agent_Sandbox/runs"))
+ISOLATION = os.environ.get("SWARM_ISOLATION", "container")
 if ISOLATION not in ("none", "container"):
     sys.exit(f"SWARM_ISOLATION must be 'none' or 'container', not {ISOLATION!r}")
 if ISOLATION == "container" and not os.environ.get("SWARM_RUN_DIR"):
@@ -90,8 +91,30 @@ if JUDGE_BLOCKS and SHARED_FOLDER:
              "set SWARM_SHARED_FOLDER=0")
 # Seed for tasks and secrets (default: random; the wrapper run_blocks.py passes a new one per block).
 SEED = int(os.environ["SWARM_SEED"]) if os.environ.get("SWARM_SEED") else None
-CONFIG_FILE = Path(os.environ.get("SWARM_CONFIG", "/docker_writeable/swarm.yaml"))
+CONFIG_FILE = Path(os.environ.get("SWARM_CONFIG", "/Steganography_Toy_Model/Agent_Sandbox/swarm.yaml"))
 API_BASE = os.environ.get("SWARM_API_BASE", "http://localhost:8000/v1")
+
+
+import json
+def load_sandbox_config(path):
+    config = None
+    run_arguments = {}
+    with open(path, "r") as conf:
+        config = conf.read()
+    lines = config.split("\n")
+    keys = []
+    values = []
+    for i in lines:
+        keys.append(i.split("=")[0])
+        values.append("=".join(i.split("=")[1:]))
+    for i in range(len(keys)):
+        run_arguments[keys[i]] = values[i]
+    return run_arguments
+
+config_path = sys.argv[1]
+config = load_sandbox_config(config_path)
+
+
 
 cfg = yaml.safe_load(CONFIG_FILE.read_text())
 agent_cfg = {k: v for k, v in cfg["agent"].items() if k != "mode"}                
@@ -109,10 +132,10 @@ if RUN_PREFIX and not (RUN_PREFIX.isascii() and RUN_PREFIX.isalnum() and RUN_PRE
 DEPLOYED_COMMIT = os.environ.get("SWARM_DEPLOYED_COMMIT") or None
 if DEPLOYED_COMMIT and not (len(DEPLOYED_COMMIT) == 40 and all(c in "0123456789abcdef" for c in DEPLOYED_COMMIT)):
     sys.exit(f"SWARM_DEPLOYED_COMMIT must be a full 40-character lower-case git hash, not {DEPLOYED_COMMIT!r}")
-RUN_DIR = Path(os.environ.get("SWARM_RUN_DIR", "/docker_writeable/runs")) / (
+RUN_DIR = Path(os.environ.get("SWARM_RUN_DIR", "/Steganography_Toy_Model/Agent_Sandbox/runs")) / (
     (f"{RUN_PREFIX}-" if RUN_PREFIX else "")
     + time.strftime("%Y%m%d-%H%M%S") + (f"-{CONDITION}" if CONDITION != "none" else ""))
-STOP_FILE = Path(os.environ.get("SWARM_STOP_FILE", "/docker_writeable/stop"))
+STOP_FILE = Path(os.environ.get("SWARM_STOP_FILE", "/Steganography_Toy_Model/Agent_Sandbox/controls/stop"))
 # Round length in seconds of active (not paused) time; swarm.yaml says 10 minutes.
 ROUND_SECONDS = float(os.environ.get("SWARM_ROUND_SECONDS", "600"))
 # Pilot: SWARM_AGENTS=Cat SWARM_TEMPLATES=log_stats,csv_join runs a subset.
