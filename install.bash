@@ -3,11 +3,11 @@ export NEEDRESTART_MODE=a
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $SCRIPT_DIR
 
-mkdir ~/.local/share/Steganography_Toy_Model
-mkdir ~/.local/share/Steganography_Toy_Model/vllm
-mkdir ~/.local/share/Steganography_Toy_Model/vllm/logs/
-mkdir ~/.local/share/Steganography_Toy_Model/hf-cache/
-mkdir ~/.local/share/Steganography_Toy_Model/stop
+mkdir /Steganography_Toy_Model
+mkdir /Steganography_Toy_Model/vllm
+mkdir /Steganography_Toy_Model/vllm/logs/
+mkdir /Steganography_Toy_Model/hf-cache/
+mkdir /Steganography_Toy_Model/stop
 
 apt-get update
 apt-get install -y python3
