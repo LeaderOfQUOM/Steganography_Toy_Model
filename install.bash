@@ -18,3 +18,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 uv venv --seed --python 3.13
 source .venv/bin/activate
+
+pip install mini-swe-agent
+pip install vllm
+pip install litellm
+vllm download-kernels
